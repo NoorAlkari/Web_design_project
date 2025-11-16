@@ -14,31 +14,8 @@ const items = [
   { id: "guardian_greaves", name: "Guardian Greaves", image: "Gaurd.png", category: "Intelligence", type: "Support / Aura", description: "Strong team heal + dispel.", price: 4950, action: "buy", stock: 3 }
 ];
 
-// ===== STATE =====
-const backpack = {};
-const inventory = {};
-let walletGold = 20000;
-
-// ===== DOM =====
-const searchInput = document.getElementById("searchInput");
-const searchButton = document.getElementById("searchButton");
-const transactionFilter = document.getElementById("transactionFilter");
-const categoryFilter = document.getElementById("categoryFilter");
-const sortSelect = document.getElementById("sortSelect");
-const itemsBody = document.getElementById("itemsBody");
-const resultsCount = document.getElementById("resultsCount");
-const backpackBody = document.getElementById("backpackBody");
-const backpackCount = document.getElementById("backpackCount");
-const backpackTotal = document.getElementById("backpackTotal");
-const clearBackpackBtn = document.getElementById("clearBackpack");
-const buyAllButton = document.getElementById("buyAllButton");
-const moveAllButton = document.getElementById("moveAllButton");
-const walletGoldEl = document.getElementById("walletGold");
-
-// ===== RENDER WALLET =====
-function renderWallet() {
-  walletGoldEl.textContent = walletGold.toLocaleString();
-}
+// ONE base path for all images
+const IMAGE_BASE_PATH = "images/";
 
 // ===== RENDER ITEMS =====
 function renderItems(list) {
@@ -48,11 +25,11 @@ function renderItems(list) {
     return;
   }
 
-  itemsBody.innerHTML = list.map (item => `
+  itemsBody.innerHTML = list.map(item => `
     <tr>
       <td>
         <div class="item-cell">
-          <img src="../images/${item.image}" class="item-icon" alt="${item.name}">
+          <img src="${IMAGE_BASE_PATH}${item.image}" class="item-icon" alt="${item.name}">
           <span class="item-name">${item.name}</span>
         </div>
       </td>
@@ -102,7 +79,7 @@ function renderBackpack() {
     return `
       <div class="backpack-item">
         <div class="backpack-item-main">
-          <img src="images/${item.image}" class="item-icon" alt="${item.name}">
+          <img src="${IMAGE_BASE_PATH}${item.image}" class="item-icon" alt="${item.name}">
           <div>
             <div class="backpack-item-name">${item.name}</div>
             <div class="backpack-item-qty">x${qty}</div>
@@ -138,7 +115,7 @@ function renderInventory() {
     return `
       <div class="inventory-item">
         <div class="inventory-item-main">
-          <img src="images/${item.image}" class="item-icon" alt="${item.name}">
+          <img src="${IMAGE_BASE_PATH}${item.image}" class="item-icon" alt="${item.name}">
           <div>
             <div class="inventory-item-name">${item.name}</div>
             <div class="inventory-item-qty">x${qty}</div>
@@ -151,140 +128,3 @@ function renderInventory() {
   inventoryBody.innerHTML = html;
   inventoryCount.textContent = total;
 }
-
-// ===== FILTER & SORT =====
-function filterAndRender() {
-  const q = searchInput.value.toLowerCase();
-  const mode = transactionFilter.value;
-  const cat = categoryFilter.value;
-  const sortBy = sortSelect.value;
-
-  let filtered = items
-    .filter(item =>
-      item.name.toLowerCase().includes(q) ||
-      item.description.toLowerCase().includes(q)
-    )
-    .filter(item => mode === "all" || item.action === mode)
-    .filter(item => cat === "all" || item.category === cat);
-
-  filtered.sort((a, b) => {
-    if (sortBy === "name-asc") return a.name.localeCompare(b.name);
-    if (sortBy === "name-desc") return b.name.localeCompare(a.name);
-    if (sortBy === "price-asc") return a.price - b.price;
-    if (sortBy === "price-desc") return b.price - a.price;
-    return 0;
-  });
-
-  renderItems(filtered);
-}
-
-// ===== EVENTS =====
-
-// single item Add
-itemsBody.addEventListener("click", e => {
-  const btn = e.target.closest(".buy-button");
-  if (!btn) return;
-
-  const id = btn.dataset.id;
-  const item = items.find(i => i.id === id);
-  if (!item || item.stock <= 0) return;
-
-  item.stock--;
-  backpack[id] = (backpack[id] || 0) + 1;
-
-  filterAndRender();
-  renderBackpack();
-});
-
-// clear backpack (returns stock)
-clearBackpackBtn.addEventListener("click", () => {
-  Object.entries(backpack).forEach(([id, qty]) => {
-    const item = items.find(i => i.id === id);
-    if (item) item.stock += qty;
-  });
-
-  Object.keys(backpack).forEach(id => { backpack[id] = 0; });
-
-  filterAndRender();
-  renderBackpack();
-});
-
-// search / filters
-searchButton.addEventListener("click", filterAndRender);
-searchInput.addEventListener("input", filterAndRender);
-transactionFilter.addEventListener("change", filterAndRender);
-categoryFilter.addEventListener("change", filterAndRender);
-sortSelect.addEventListener("change", filterAndRender);
-
-// buy all visible SELLING items
-buyAllButton.addEventListener("click", () => {
-  const query = searchInput.value.trim().toLowerCase();
-  const mode = transactionFilter.value;
-  const category = categoryFilter.value;
-
-  let filtered = items.filter(item => {
-    const matchesSearch =
-      !query ||
-      item.name.toLowerCase().includes(query) ||
-      item.type.toLowerCase().includes(query) ||
-      item.description.toLowerCase().includes(query);
-
-    const matchesMode = mode === "all" ? true : item.action === mode;
-    const matchesCat = category === "all" ? true : item.category === category;
-
-    return matchesSearch && matchesMode && matchesCat;
-  });
-
-  const purchasable = filtered.filter(i => i.action === "sell" && i.stock > 0);
-  if (!purchasable.length) return;
-
-  let totalCost = 0;
-  purchasable.forEach(item => {
-    totalCost += item.price * item.stock;
-  });
-
-  if (walletGold < totalCost) {
-    alert("Not enough gold to purchase all items.");
-    return;
-  }
-
-  walletGold -= totalCost;
-
-  purchasable.forEach(item => {
-    if (!backpack[item.id]) backpack[item.id] = 0;
-    backpack[item.id] += item.stock;
-    item.stock = 0;
-  });
-
-  renderWallet();
-  renderBackpack();
-  filterAndRender();
-});
-
-// move all from backpack to inventory
-moveAllButton.addEventListener("click", () => {
-  const entries = Object.entries(backpack);
-
-  if (!entries.length) {
-    alert("Backpack is empty.");
-    return;
-  }
-
-  entries.forEach(([id, qty]) => {
-    if (qty <= 0) return;
-    if (!inventory[id]) inventory[id] = 0;
-    inventory[id] += qty;
-    backpack[id] = 0;
-  });
-
-  renderBackpack();
-  renderInventory();
-});
-
-// ===== INITIAL RENDER =====
-filterAndRender();
-renderBackpack();
-renderInventory();
-renderWallet();
-
-
