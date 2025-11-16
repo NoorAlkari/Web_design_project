@@ -48,11 +48,13 @@ function renderItems(list) {
     return;
   }
 
-  itemsBody.innerHTML = list.map(item => `
+  itemsBody.innerHTML = list
+    .map
+    (item) => `
     <tr>
       <td>
         <div class="item-cell">
-          <img src=.."images/${item.image}" class="item-icon" alt="${item.name}">
+          <img src="../images/${item.image}" class="item-icon" alt="${item.name}">
           <span class="item-name">${item.name}</span>
         </div>
       </td>
@@ -286,3 +288,4 @@ filterAndRender();
 renderBackpack();
 renderInventory();
 renderWallet();
+
