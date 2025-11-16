@@ -14,8 +14,8 @@ const items = [
   { id: "guardian_greaves", name: "Guardian Greaves", image: "Gaurd.png", category: "Intelligence", type: "Support / Aura", description: "Strong team heal + dispel.", price: 4950, action: "buy", stock: 3 }
 ];
 
-// ===== IMAGE BASE PATH (FOR GITHUB PAGES) =====
-const IMAGE_BASE_PATH = "images/";
+// ===== IMAGE BASE PATH – matches 'Images' folder name on GitHub =====
+const IMAGE_BASE_PATH = "Images/";
 
 // ===== STATE =====
 const backpack = {};
