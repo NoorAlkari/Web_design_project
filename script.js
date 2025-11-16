@@ -48,9 +48,7 @@ function renderItems(list) {
     return;
   }
 
-  itemsBody.innerHTML = list
-    .map
-    (item) => `
+  itemsBody.innerHTML = list.map (item => `
     <tr>
       <td>
         <div class="item-cell">
@@ -288,4 +286,5 @@ filterAndRender();
 renderBackpack();
 renderInventory();
 renderWallet();
+
 
